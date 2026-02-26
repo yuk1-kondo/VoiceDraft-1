@@ -2,6 +2,8 @@
 
 > 喋るだけで、伝わるテキストに。
 
+![VoiceDraft](docs/images/readme_example.png)
+
 言語化が苦手でも大丈夫。話した内容を AI が自動で清書し、アクティブウィンドウにそのまま入力する Windows 常駐型アシスタントです。
 
 ![Python 3.12+](https://img.shields.io/badge/Python-3.12%2B-blue)
