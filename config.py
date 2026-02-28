@@ -26,6 +26,11 @@ GEMINI_API_KEY = os.getenv("GEMINI_API_KEY", "")
 # GEMINI_MODEL = "gemini-3-flash-preview"
 GEMINI_MODEL = "gemini-2.5-flash"
 
+# --- ローカル Whisper (API キー未設定時の自動フォールバック) ---
+# モデルサイズ: tiny / base / small / medium / large
+# tiny=最速・精度低, base=バランス良好(推奨), small=高精度, medium=日本語向け最良
+WHISPER_MODEL = os.getenv("WHISPER_MODEL", "base")
+
 # --- UI ---
 WINDOW_BG = "#1a1a2e"
 ACCENT_COLOR = "#e94560"

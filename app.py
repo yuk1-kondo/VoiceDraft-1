@@ -10,9 +10,19 @@ import customtkinter as ctk
 
 import config
 from recorder import AudioRecorder
-from gemini_client import GeminiClient
 from injector import TextInjector
 from ui.floating_window import AppState, FloatingWindow
+
+
+def _create_stt_client():
+    """API キーがあれば Gemini、なければローカル Whisper を返す."""
+    if config.GEMINI_API_KEY:
+        from gemini_client import GeminiClient
+        return GeminiClient()
+    else:
+        print("ℹ  GEMINI_API_KEY 未設定 → ローカル Whisper モードで起動します")
+        from whisper_client import WhisperClient
+        return WhisperClient()
 
 
 class Phase(enum.Enum):
@@ -39,7 +49,7 @@ class App:
             on_silence=self._on_silence_detected,
             on_volume=self._on_volume_update,
         )
-        self._gemini = GeminiClient()
+        self._gemini = _create_stt_client()
         self._injector = TextInjector()
 
         # --- UI (customtkinter) ---
