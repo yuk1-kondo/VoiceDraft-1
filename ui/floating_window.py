@@ -1,31 +1,17 @@
-"""Dynamic Island 風フローティングウィンドウ.
+"""Dynamic Island 風フローティングウィンドウ (macOS版).
 
-customtkinter + Win32 API (WS_EX_NOACTIVATE) でフォーカスを奪わないウィンドウを実現する。
+customtkinter で topmost フローティングウィンドウを実現する。
 状態に応じてピル型 ↔ 展開型にアニメーション遷移する。
 """
 
 from __future__ import annotations
 
-import ctypes
 import enum
 from typing import Callable
 
 import customtkinter as ctk
 
 import config
-
-# --- Win32 定数 ---
-GWL_EXSTYLE = -20
-WS_EX_NOACTIVATE = 0x08000000
-WS_EX_TOOLWINDOW = 0x00000080
-WS_EX_TOPMOST = 0x00000008
-SWP_FRAMECHANGED = 0x0020
-SWP_NOACTIVATE = 0x0010
-SWP_NOMOVE = 0x0002
-SWP_NOSIZE = 0x0001
-HWND_TOPMOST = -1
-
-user32 = ctypes.windll.user32
 
 
 class AppState(enum.Enum):
@@ -71,7 +57,6 @@ class FloatingWindow:
             self._create_window()
         self._switch_state(state)
         self._window.deiconify()
-        self._root.after(50, self._apply_no_activate)
 
     def hide(self) -> None:
         """ウィンドウを非表示にする."""
@@ -292,22 +277,9 @@ class FloatingWindow:
             width=120, height=34,
         ).pack(side="left")
 
-    # --- Internal: Win32 フォーカス制御 ---
+    # --- Internal: macOS topmost維持 ---
 
-    def _apply_no_activate(self) -> None:
-        """WS_EX_NOACTIVATE を適用してフォーカスを奪わないようにする."""
-        if not self._window or not self._window.winfo_exists():
-            return
-        hwnd = user32.GetParent(self._window.winfo_id())
-        if not hwnd:
-            hwnd = self._window.winfo_id()
-
-        ex_style = user32.GetWindowLongW(hwnd, GWL_EXSTYLE)
-        ex_style |= WS_EX_NOACTIVATE | WS_EX_TOOLWINDOW | WS_EX_TOPMOST
-        user32.SetWindowLongW(hwnd, GWL_EXSTYLE, ex_style)
-        user32.SetWindowPos(
-            hwnd,
-            HWND_TOPMOST,
-            0, 0, 0, 0,
-            SWP_FRAMECHANGED | SWP_NOACTIVATE | SWP_NOMOVE | SWP_NOSIZE,
-        )
+    def _ensure_topmost(self) -> None:
+        """ウィンドウを最前面に維持する (macOS用)."""
+        if self._window and self._window.winfo_exists():
+            self._window.attributes("-topmost", True)

@@ -1,53 +1,70 @@
-"""テキスト注入: アクティブウィンドウへの貼り付け."""
+"""テキスト注入: macOS でアクティブウィンドウへの貼り付け."""
 
 from __future__ import annotations
 
-import ctypes
+import subprocess
 import time
 
 import pyperclip
 
 
-user32 = ctypes.windll.user32
-
-# --- Win32 仮想キーコード ---
-VK_CONTROL = 0x11
-VK_V = 0x56
-KEYEVENTF_KEYUP = 0x0002
-
-
 class TextInjector:
-    """アクティブウィンドウを記憶し、テキストをペーストする."""
+    """アクティブアプリを記憶し、テキストをペーストする (macOS版)."""
 
     def __init__(self) -> None:
-        self._target_hwnd: int | None = None
+        self._target_app: str | None = None
 
     def save_active_window(self) -> None:
-        """現在のフォアグラウンドウィンドウを保存する."""
-        self._target_hwnd = user32.GetForegroundWindow()
+        """現在のフロントアプリを保存する."""
+        try:
+            result = subprocess.run(
+                [
+                    "osascript", "-e",
+                    'tell application "System Events" to get name of '
+                    'first application process whose frontmost is true',
+                ],
+                capture_output=True,
+                text=True,
+                timeout=3,
+            )
+            self._target_app = result.stdout.strip() or None
+        except Exception as e:
+            print(f"⚠ アクティブウィンドウの取得失敗: {e}")
+            self._target_app = None
 
     def inject_text(self, text: str) -> bool:
-        """保存したウィンドウにテキストをペーストする.
+        """保存したアプリにテキストをペーストする.
 
         Returns:
             成功時 True.
         """
-        if not self._target_hwnd:
-            print("⚠ 注入先ウィンドウが記録されていません。")
-            return False
-
         # クリップボードにコピー
         pyperclip.copy(text)
 
-        # 保存したウィンドウをフォアグラウンドに復帰
-        user32.SetForegroundWindow(self._target_hwnd)
-        time.sleep(0.15)  # ウィンドウ切替待ち
+        # 保存したアプリをフロントに復帰
+        if self._target_app:
+            try:
+                subprocess.run(
+                    ["osascript", "-e", f'tell application "{self._target_app}" to activate'],
+                    capture_output=True,
+                    timeout=3,
+                )
+                time.sleep(0.3)  # ウィンドウ切替待ち
+            except Exception as e:
+                print(f"⚠ アプリ復帰失敗: {e}")
 
-        # Ctrl+V でペースト (Win32 API 直接: keyboard ライブラリの状態を汚さない)
-        user32.keybd_event(VK_CONTROL, 0, 0, 0)
-        user32.keybd_event(VK_V, 0, 0, 0)
-        user32.keybd_event(VK_V, 0, KEYEVENTF_KEYUP, 0)
-        user32.keybd_event(VK_CONTROL, 0, KEYEVENTF_KEYUP, 0)
-        time.sleep(0.1)
+        # Cmd+V でペースト (osascript)
+        try:
+            subprocess.run(
+                [
+                    "osascript", "-e",
+                    'tell application "System Events" to keystroke "v" using command down',
+                ],
+                capture_output=True,
+                timeout=3,
+            )
+        except Exception as e:
+            print(f"⚠ ペースト失敗: {e}")
+            return False
 
         return True

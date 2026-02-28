@@ -1,7 +1,7 @@
 [project]
-name = "win-voice-injector"
+name = "voice-draft"
 version = "0.1.0"
-description = "Windows 常駐型音声入力アプリ"
+description = "macOS 常駐型音声入力アシスタント (YK Fork)"
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
@@ -16,4 +16,4 @@ dependencies = [
 ]
 
 [project.scripts]
-voice-injector = "main:main"
+voice-draft = "main:main"

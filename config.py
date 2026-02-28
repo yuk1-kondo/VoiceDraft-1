@@ -9,6 +9,7 @@ from dotenv import load_dotenv
 load_dotenv(Path(__file__).parent / ".env")
 
 # --- ホットキー ---
+# macOS では ctrl+shift+a = ⌃⇧A（アクセシビリティ権限が必要）
 HOTKEY = "ctrl+shift+a"
 
 # --- 録音 ---
