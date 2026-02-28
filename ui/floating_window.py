@@ -212,8 +212,9 @@ class FloatingWindow:
 
     def _build_processing_ui(self) -> None:
         """コンパクトなピル型の処理中 UI."""
+        text = "🔄  Whisper 文字起こし中..." if not config.GEMINI_API_KEY else "⏳  Gemini に送信中..."
         ctk.CTkLabel(
-            self._container, text="⏳  Gemini に送信中...",
+            self._container, text=text,
             font=ctk.CTkFont(size=13, weight="bold"),
             text_color="#ffd866",
         ).pack(expand=True)
